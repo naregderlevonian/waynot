@@ -1,0 +1,28 @@
+#!/bin/bash
+
+declare -a lines
+processing=false
+
+dbus-monitor "interface='org.freedesktop.Notifications'" | while read -r line; do
+    if [[ "$line" == *member=Notify* ]]; then
+        processing=true    
+        lines=()
+    fi
+
+    if $processing; then
+
+        if [[ "$line" == *member=NotificationClosed* ]]; then
+            processing=false
+            caption=$(echo "${lines[4]}" | cut -d' ' -f2- | tr -d '"')
+            message=$(echo "${lines[5]}" | cut -d' ' -f2- | tr -d '"') 
+
+            waynot send "$caption" "$message"
+
+            lines=()
+        else 
+            lines+=("$line")
+        fi
+    fi
+done
+
+
