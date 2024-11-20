@@ -4,9 +4,9 @@ LOG="/tmp/waynot.log"
 STORAGE="/tmp/waynot.last"
 JOB="/tmp/waynot.job"
 SIGNAL_NO=1
-TIMEOUT=3
+TIMEOUT=5
 CLASS=""
-TRUNC=48
+TRUNC=32
 
 refresh() {
     pkill -SIGRTMIN+$SIGNAL_NO waybar
@@ -36,7 +36,7 @@ save() {
     local message="$2"
     local ellipsis=$([ ${#message} -gt $TRUNC ] && echo "…")
 
-    formatted=$(printf '{"class":"%s","text":"%s"}' "$CLASS" "<b>$caption</b> • ${message:0:$TRUNC}$ellipsis")
+    formatted=$(printf '{"class":"%s","text":"%s", "tooltip": "%s"}' "$CLASS" "<b>$caption</b> • ${message:0:$TRUNC}$ellipsis" "$message")
 
     echo "$formatted" >  $STORAGE
     echo "$caption | $message" >> $LOG
