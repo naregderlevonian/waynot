@@ -1,5 +1,13 @@
 #!/bin/sh
 
+usage() {
+    cat << EOF
+Usage: waynot post
+       waynot send {caption} {message}
+EOF
+    exit 1
+}
+
 LOG="/tmp/waynot.log"
 STORAGE="/tmp/waynot.last"
 JOB="/tmp/waynot.job"
@@ -36,7 +44,7 @@ save() {
     local message="$2"
     local ellipsis=$([ ${#message} -gt $TRUNC ] && echo "…")
 
-    formatted=$(printf '{"class":"%s","text":"%s", "tooltip": "%s"}' "$CLASS" "<b>$caption</b> • ${message:0:$TRUNC}$ellipsis" "$message")
+    formatted=$(printf '{"class":"%s","text":"%s", "tooltip": "%s"}' "$CLASS" "<b>$caption</b> ${message:0:$TRUNC}$ellipsis" "$message")
 
     echo "$formatted" >  $STORAGE
     echo "$caption | $message" >> $LOG
@@ -65,5 +73,6 @@ case "$1" in
         send "$2" "$3"
         ;;
     *)
+        usage
         ;;
 esac
