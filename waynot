@@ -1,0 +1,78 @@
+#!/bin/sh
+
+usage() {
+    cat << EOF
+Usage:  waynot post
+        waynot send {caption} {message}
+EOF
+    exit 1
+}
+
+LOG="/tmp/waynot.log"
+STORAGE="/tmp/waynot.last"
+JOB="/tmp/waynot.job"
+SIGNAL_NO=7
+TIMEOUT=3
+CLASS=""
+TRUNC=222
+
+refresh() {
+    kill -SIGRTMIN+$SIGNAL_NO $(pidof waybar)
+}
+
+is_alive() {
+    pgrep "$1" > /dev/null 2>&1
+    return $?
+}
+
+start_timer() {
+    echo "$1" > "$JOB"
+}
+
+reset_timer() {
+    kill "$(cat $JOB)"
+}
+
+clear() {
+    sleep $TIMEOUT
+    rm $STORAGE
+    refresh
+}
+
+save() {
+    local caption="$1"
+    local message="$2"
+    local ellipsis=$([ ${#message} -gt $TRUNC ] && echo "…")
+
+    formatted=$(printf '{"class":"%s","text":"%s", "tooltip": "%s"}' "$CLASS" "<b>$caption</b> ${message:0:$TRUNC}$ellipsis" "$message")
+
+    echo "$formatted" >  $STORAGE
+    echo "$caption | $message" >> $LOG
+
+    reset_timer
+    refresh
+    clear &
+    start_timer $!
+}
+
+post() {
+    [ -e $STORAGE ] && { cat $STORAGE; }
+}
+
+send() {
+    if is_alive "waybar"; then
+        save "$1" "$2"
+    fi
+}
+
+case "$1" in
+    "post")
+        post
+        ;;
+    "send")
+        send "$2" "$3"
+        ;;
+    *)
+        usage
+        ;;
+esac
