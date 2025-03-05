@@ -66,7 +66,3 @@ You can add custom styles for your notifications in your Waybar `style.css` file
 ## Customization
 
 You can customize the appearance and behavior of the notifications by modifying the `TRUNC` variable in the `waynot` script.
-
-## License
-
-This project is licensed under the MIT License.
